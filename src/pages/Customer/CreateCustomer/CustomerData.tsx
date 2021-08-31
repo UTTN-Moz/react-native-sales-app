@@ -1,16 +1,29 @@
-import React, { useState } from 'react';
-import { ScrollView, View, StyleSheet, Switch, Text, TextInput, TouchableOpacity, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { YellowBox } from 'react-native'
+
+import { SafeAreaView, ScrollView, View, StyleSheet, Switch, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { RectButton } from 'react-native-gesture-handler';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import * as ImagePicker from "expo-image-picker";
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import SelectBox, { Item } from 'react-native-multi-selectbox-typescript'
+import { xorBy } from 'lodash'
+
 import api from '../../../services/api';
+
+YellowBox.ignoreWarnings([
+  'VirtualizedLists should never be nested', // TODO: Remove when fixed
+])
 
 interface CustomerDataRouteParams {
   position: {
     latitude: number,
     longitude: number
   }
+}
+
+interface SalesPoint {
+  id: number;
+  name: string;
 }
 
 interface Customer {
@@ -21,6 +34,7 @@ interface Customer {
   cellphone2?: string;
   latitude?: number;
   longitude?: number;
+  sales_point?: SalesPoint
 }
 
 
@@ -37,7 +51,25 @@ export default function CustomerData() {
 
   const [cellphone2, setCellphone2] = useState('');
 
+  const [salesPoints, setSalesPoints] = useState<Item[]>([]);
+
+  const [salesPoint, setSalesPoint] = useState<Item>();
+
   const params = route.params as CustomerDataRouteParams;
+
+  useEffect(() => {
+    api.get('sales-points').then(response => {
+
+      const items: Item[] = response.data?.map((salesPoint: SalesPoint) => {
+        return {
+          id: salesPoint.id,
+          item: salesPoint.name
+        }
+      })
+
+      setSalesPoints(items);
+    });
+  })
 
   async function handleCreateCustomer() {
     const { latitude, longitude } = params.position;
@@ -51,6 +83,13 @@ export default function CustomerData() {
       cellphone1,
       cellphone2
     };
+
+    if (!!salesPoint) {
+      data.sales_point = {
+        id: Number(salesPoint.id),
+        name: salesPoint.item
+      };
+    }
 
     await api.post('Customers', data);
 
@@ -76,10 +115,18 @@ export default function CustomerData() {
         multiline
       />
 
+      <SelectBox
+        label="Ponto de Venda"
+        options={salesPoints}
+        value={salesPoint}
+        onChange={(i: Item) => setSalesPoint(i)}
+        hideInputFilter={false}
+      />
 
       <Text style={styles.title}>Contactos</Text>
 
       <Text style={styles.label}>Telefone</Text>
+
       <TextInput
         style={[styles.input]}
         multiline
@@ -94,6 +141,7 @@ export default function CustomerData() {
         onChangeText={setCellphone2}
       />
 
+
       <RectButton style={styles.nextButton} onPress={handleCreateCustomer}>
         <Text style={styles.nextButtonText}>Cadastrar</Text>
       </RectButton>
@@ -103,7 +151,7 @@ export default function CustomerData() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    margin: 15
   },
 
   title: {

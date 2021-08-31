@@ -43,9 +43,21 @@ export default function CustomerList() {
         navigation.navigate('CustomerSelectMapPosition');
     }
 
+    const renderSeparator = () => {
+        return (
+            <View
+                style={{
+                    height: 1,
+                    width: "100%",
+                    backgroundColor: "#000",
+                }}
+            />
+        );
+    };
+
     const Item = ({ title }) => (
         <View style={styles.item}>
-            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.title} >{title}</Text>
         </View>
     );
 
@@ -60,6 +72,7 @@ export default function CustomerList() {
                 data={customers}
                 renderItem={renderItem}
                 keyExtractor={(item: Customer) => item.id.toString()}
+                ItemSeparatorComponent={renderSeparator}
             />
 
             <View style={styles.footer}>
@@ -122,7 +135,7 @@ const styles = StyleSheet.create({
         height: 44,
     },
     title: {
-        fontSize: 32,
+
     },
     createOrphanageButton: {
         width: 56,
