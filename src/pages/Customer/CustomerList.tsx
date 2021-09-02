@@ -35,10 +35,6 @@ export default function CustomerList() {
 
     const navigation = useNavigation();
 
-    function handlerNavigateToOrphanageDetails(id: number) {
-        navigation.navigate('CustomerDetails', { id });
-    }
-
     function handlerNavigateToCreateOrphanage() {
         navigation.navigate('CustomerSelectMapPosition');
     }
@@ -55,16 +51,21 @@ export default function CustomerList() {
         );
     };
 
-    const Item = ({ title }) => (
+    const Item = ({ id, title }) => (
         <View style={styles.item}>
-            <Text style={styles.title} >{title}</Text>
+            <Text style={styles.title} onPress={() => onPressClient(id)} >
+                {title}
+            </Text>
         </View>
     );
 
     const renderItem = ({ item }) => (
-        <Item title={item.name} />
+        <Item id={item.id} title={item.name} />
     );
 
+    const onPressClient = (id: number) => {
+        navigation.navigate('CustomerDetails', { id });
+    }
     return (
         <View style={styles.container}>
 

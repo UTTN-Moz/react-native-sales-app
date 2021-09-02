@@ -96,6 +96,10 @@ export default function CustomerDetails() {
           <FontAwesome name="whatsapp" size={24} color="#FFF" />
           <Text style={styles.contactButtonText}>Entrar em contato</Text>
         </RectButton>
+
+        <RectButton style={styles.contactButton} onPress={() => { }}>
+          <Text style={styles.contactButtonText}>Faturar</Text>
+        </RectButton>
       </View>
     </ScrollView>
   )
