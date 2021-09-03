@@ -28,7 +28,7 @@ export default function SelectMapPosition() {
           latitudeDelta: 0.008,
           longitudeDelta: 0.008,
         }}
-        style={styles.mapStyle}
+        style={{ flex: 1 }}
         onPress={handleSelectMapPosition}
       >
         {position.latitude != 0 && (

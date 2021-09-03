@@ -3,46 +3,40 @@ import { Image, View, ScrollView, Text, StyleSheet, Dimensions, TouchableOpacity
 import MapView, { Marker } from 'react-native-maps';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 
-import mapMarkerImg from './../images/map-marker.png';
+import mapMarkerImg from '../../images/map-marker.png';
 import { RectButton } from 'react-native-gesture-handler';
 
 import { useRoute } from '@react-navigation/native';
-import api from './../services/api';
+import api from '../../services/api';
 
-interface OrphanageDetailsRouteParams {
+interface CustomerDetailsRouteParams {
   id: number;
 }
 
-interface Orphanage {
+interface Customer {
   id: number;
-  name: string;
-  latitude: number;
-  longitude: number;
-  about: string;
-  instructions: string;
-  opening_hours: string;
-  open_on_weekends: boolean;
-  images: Array<{
-    id: number;
-    url: string;
-  }>
-
+  name?: string;
+  vat?: string;
+  cellphone1?: string;
+  cellphone2?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
-export default function OrphanageDetails() {
+export default function CustomerDetails() {
 
   const route = useRoute();
-  const [orphanage, setOrphanage] = useState<Orphanage>();
+  const [customer, setCustomer] = useState<Customer>();
 
-  const params = route.params as OrphanageDetailsRouteParams;
+  const params = route.params as CustomerDetailsRouteParams;
 
   useEffect(() => {
-    api.get(`orphanages/${params.id}`).then(response => {
-      setOrphanage(response.data);
+    api.get(`customers/${params.id}`).then(response => {
+      setCustomer(response.data);
     })
   }, [params.id]);
 
-  if (!orphanage) {
+  if (!customer) {
     return (
       <View style={styles.container}>
         <Text style={styles.description}>Carregando...</Text>
@@ -51,34 +45,20 @@ export default function OrphanageDetails() {
   }
 
   function handleOpenGoogleMapsRoutes() {
-    Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${orphanage?.latitude},${orphanage?.longitude}`);
+    Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${customer?.latitude},${customer?.longitude}`);
   }
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.imagesContainer}>
-        <ScrollView horizontal pagingEnabled>
-
-          {orphanage.images.map(image => {
-            return (
-              <Image
-                key={image.id}
-                style={styles.image}
-                source={{ uri: image.url }} />
-            )
-          })}
-        </ScrollView>
-      </View>
-
       <View style={styles.detailsContainer}>
-        <Text style={styles.title}>{orphanage.name}</Text>
-        <Text style={styles.description}>{orphanage.name}</Text>
+        <Text style={styles.title}>{customer.name}</Text>
+        <Text style={styles.description}>{customer.name}</Text>
 
         <View style={styles.mapContainer}>
           <MapView
             initialRegion={{
-              latitude: orphanage.latitude,
-              longitude: orphanage.longitude,
+              latitude: customer.latitude || -25.8962418,
+              longitude: customer.longitude || 32.5406432,
               latitudeDelta: 0.008,
               longitudeDelta: 0.008,
             }}
@@ -91,8 +71,8 @@ export default function OrphanageDetails() {
             <Marker
               icon={mapMarkerImg}
               coordinate={{
-                latitude: orphanage.latitude,
-                longitude: orphanage.longitude
+                latitude: customer.latitude || -25.8962418,
+                longitude: customer.latitude || -25.8962418
               }}
             />
           </MapView>
@@ -106,31 +86,22 @@ export default function OrphanageDetails() {
 
         <View style={styles.separator} />
 
-        <Text style={styles.title}>Instruções para visita</Text>
-        <Text style={styles.description}>{orphanage.instructions}</Text>
+        <Text style={styles.title}>Dados do Cliente</Text>
+        <Text style={styles.description}>{customer.name}</Text>
+        <Text style={styles.description}>{customer.vat}</Text>
+        <Text style={styles.description}>{customer.cellphone1}</Text>
+        <Text style={styles.description}>{customer.cellphone2}</Text>
 
-        <View style={styles.scheduleContainer}>
-          <View style={[styles.scheduleItem, styles.scheduleItemBlue]}>
-            <Feather name="clock" size={40} color="#2AB5D1" />
-            <Text style={[styles.scheduleText, styles.scheduleTextBlue]}>{orphanage.opening_hours}</Text>
-          </View>
-          {orphanage.open_on_weekends ? (
-            <View style={[styles.scheduleItem, styles.scheduleItemGreen]}>
-              <Feather name="info" size={40} color="#39CC83" />
-              <Text style={[styles.scheduleText, styles.scheduleTextGreen]}>Atendemos fim de semana</Text>
-            </View>
-          ) : (
-            <View style={[styles.scheduleItem, styles.scheduleItemRed]}>
-              <Feather name="info" size={40} color="#FF669D" />
-              <Text style={[styles.scheduleText, styles.scheduleTextRed]}>Não Atendemos fim de semana</Text>
-            </View>
-          )}
-        </View>
+        <RectButton style={styles.contactButton} onPress={() => { }}>
+          <Text style={styles.contactButtonText}>Faturar</Text>
+        </RectButton>
 
         <RectButton style={styles.contactButton} onPress={() => { }}>
           <FontAwesome name="whatsapp" size={24} color="#FFF" />
           <Text style={styles.contactButtonText}>Entrar em contato</Text>
         </RectButton>
+
+
       </View>
     </ScrollView>
   )

@@ -24,14 +24,9 @@
       "versionCode": 1,
       "config": {
         "googleMaps": {
-          "apiKey": "IIAIDSSSSS_AIzaSyD59bYVKGePEU_vWZk3VgD5e0YPhFQmiFs"
+          "apiKey": "AAAAA"
         }
-      },
-      "permissions": [
-        "INTERNET",
-        "ACCESS_COURSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
-      ]
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
