@@ -13,3 +13,4 @@ web-build/
 .DS_Store
 .env
 *api.ts
+app.json

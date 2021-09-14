@@ -1,0 +1,1 @@
+h.tipodoc and m.serie = h.serie and m.numdoc = h.numdocint

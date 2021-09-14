@@ -12,11 +12,6 @@ import CustomerSelectMapPosition from './pages/Customer/CreateCustomer/SelectMap
 import CustomerDetails from './pages/Customer/CustomerDetails';
 import CustomerData from './pages/Customer/CreateCustomer/CustomerData';
 
-import OrphanagesMap from './pages/OrphanagesMap';
-import OrphanageDetails from './pages/OrphanageDetails';
-
-import OrphanageData from './pages/CreateOrphanage/OrphanageData';
-import SelectMapPosition from './pages/CreateOrphanage/SelectMapPosition';
 import Header from './components/Header';
 
 export default function Routes() {
@@ -28,7 +23,7 @@ export default function Routes() {
                     component={CustomerList}
                     options={{
                         headerShown: true,
-                        header: () => <Header title="Lista de Clientes" />
+                        header: () => <Header showCancel={false} title="Lista de Clientes" />
                     }}
                 />
                 <Screen
@@ -56,35 +51,7 @@ export default function Routes() {
                     component={CustomerDetails}
                     options={{
                         headerShown: true,
-                        header: () => <Header showCancel={false} title="Orfanato" />
-                    }}
-                />
-                <Screen
-                    name="OrphanagesMap"
-                    component={OrphanagesMap}
-                />
-                <Screen
-                    name="OrphanageDetails"
-                    component={OrphanageDetails}
-                    options={{
-                        headerShown: true,
-                        header: () => <Header showCancel={false} title="Orfanato" />
-                    }}
-                />
-                <Screen
-                    name="SelectMapPosition"
-                    component={SelectMapPosition}
-                    options={{
-                        headerShown: true,
-                        header: () => <Header title="Selecione no mapa" />
-                    }}
-                />
-                <Screen
-                    name="OrphanageData"
-                    component={OrphanageData}
-                    options={{
-                        headerShown: true,
-                        header: () => <Header title="Informe os dados" />
+                        header: () => <Header title="Dados Cliente" />
                     }}
                 />
             </Navigator>
