@@ -21,7 +21,17 @@
     },
     "android": {
       "package": "com.mahotaservicos.salesapp",
-      "versionCode": 1
+      "versionCode": 1,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AAAA"
+        }
+      },
+      "permissions": [
+        "INTERNET",
+        "ACCESS_COURSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

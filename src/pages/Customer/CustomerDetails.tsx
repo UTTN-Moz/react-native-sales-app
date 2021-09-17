@@ -3,6 +3,8 @@ import { Image, View, ScrollView, Text, StyleSheet, Dimensions, TouchableOpacity
 import MapView, { Marker } from 'react-native-maps';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+
 import mapMarkerImg from '../../images/map-marker.png';
 import { RectButton } from 'react-native-gesture-handler';
 
@@ -29,7 +31,7 @@ export default function CustomerDetails() {
   const [customer, setCustomer] = useState<Customer>();
 
   const params = route.params as CustomerDetailsRouteParams;
-
+  const navigation = useNavigation();
   useEffect(() => {
     api.get(`customers/${params.id}`).then(response => {
       setCustomer(response.data);
@@ -46,6 +48,10 @@ export default function CustomerDetails() {
 
   function handleOpenGoogleMapsRoutes() {
     Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${customer?.latitude},${customer?.longitude}`);
+  }
+
+  function handlerNavigateToInvoice(customerId:number) {
+    navigation.navigate('CreateInvoice', { customerId });
   }
 
   return (
@@ -97,7 +103,7 @@ export default function CustomerDetails() {
           <Text style={styles.contactButtonText}>Entrar em contato</Text>
         </RectButton>
 
-        <RectButton style={styles.contactButton} onPress={() => { }}>
+        <RectButton style={styles.contactButton} onPress={handlerNavigateToInvoice}>
           <Text style={styles.contactButtonText}>Faturar</Text>
         </RectButton>
       </View>

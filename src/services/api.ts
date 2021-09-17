@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const token = "abjabdbqefbscum+q08erkhc08h+er´0ketc´+qetkc´jweg-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjMwNDE4MDIzLCJleHAiOjE2MzMwMTAwMjN9.t5psO3VOAOj_Ijr6gvaDaZZ_BXo_XCUGpfy0eRiEAIo"
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNjMxODE4NjU4LCJleHAiOjE2MzQ0MTA2NTh9.vxSW2tjKtSnbjsbJDE3ruGSSJWU1oHNNg0eVuP501Es"
 const api = axios.create({
     baseURL: 'https://strapi-sales-api.herokuapp.com'
 });
