@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { YellowBox } from 'react-native'
 
 import {
   ActionSheetSelectOptionIcon,
-  
+
 } from "../../../components";
 
 import { BaseStyle } from "../../../config";
 
-import { SafeAreaView, ScrollView, View, StyleSheet, Switch, Text, TextInput, TouchableOpacity, Image } from 'react-native';
+import { Modal, FlatList, Pressable, SafeAreaView, ScrollView, View, StyleSheet, Switch, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { RectButton } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -17,14 +16,8 @@ import { xorBy } from 'lodash'
 
 import api from '../../../services/api';
 
-YellowBox.ignoreWarnings([
-  'VirtualizedLists should never be nested', // TODO: Remove when fixed
-])
-
-
-
 interface InvoiceDetailsRouteParams {
-    customerId: number;
+  customerId: number;
 }
 
 interface SalesPoint {
@@ -43,6 +36,19 @@ interface Customer {
   sales_point?: SalesPoint
 }
 
+interface Items {
+  id?: number;
+  code?: string;
+  description?: string;
+  quantity?: number;
+  price?: number;
+  amount?: number;
+}
+
+interface ProductItem {
+  id: string | number;
+  item: string;
+}
 
 export default function CustomerData() {
 
@@ -52,26 +58,74 @@ export default function CustomerData() {
   const [position, setPosition] = useState({ latitude: 0, longitude: 0 });
 
   const [name, setName] = useState('');
-  
+
+  const [nuit, setNuit] = useState('');
+
   const [money, setMoney] = useState(32000);
 
-  const [customerId,setCustomerId] = useState(0);
+  const [customerId, setCustomerId] = useState(0);
 
+  const [items, setItems] = useState<Items[]>([]);
+
+  const [products, setProducts] = useState<ProductItem[]>([]);
   const params = route.params as InvoiceDetailsRouteParams;
+
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const [product, setProduct] = useState();
+  const [price, setPrice] = useState('');
+  const [quantity, setQuantity] = useState('');
+  const [amount, setAmount] = useState('');
 
   useEffect(() => {
     if (params.customerId) {
-        setCustomerId(params.customerId);
+      setCustomerId(params.customerId);
     }
- }, [params.customerId]);
+  }, [params.customerId]);
+
+  useFocusEffect(() => {
+    api.get('products').then(response => {
+      const prod = response.data.map((p) => {
+        return {
+          id: p.id,
+          item: p.name
+        }
+      })
+      setProducts(prod);
+    });
+  })
 
   async function handleCreateCustomer() {
-    
+
     navigation.navigate('CustomerList');
   }
 
+  const renderItem = ({ item }) => (
+    <Item id={item.id} title={item.description} />
+  );
+
+  const renderSeparator = () => {
+    return (
+      <View
+        style={{
+          height: 1,
+          width: "100%",
+          backgroundColor: "#000",
+        }}
+      />
+    );
+  };
+
+  const Item = ({ id, title }) => (
+    <View style={styles.item}>
+      <Text style={styles.title}  >
+        {title}
+      </Text>
+    </View>
+  );
+
   return (
-    <SafeAreaView style={BaseStyle.safeAreaView}>
+    <ScrollView style={styles.container} contentContainerStyle={{ padding: 24 }}>
       <Text style={styles.title}>Dados</Text>
 
       <Text style={styles.label}>Nome</Text>
@@ -83,32 +137,96 @@ export default function CustomerData() {
 
       <Text style={styles.label}>Nuit</Text>
 
-      <Text style={styles.title}>Contactos</Text>
+      <TextInput
+        style={styles.input}
+        value={nuit}
+        onChangeText={setNuit}
+      />
+      <Text style={styles.label}>Total</Text>
 
-      <Text style={styles.label}>Telefone</Text>
+      <TextInput
+        style={styles.input}
+        value={nuit}
+        onChangeText={setNuit}
+      />
 
-      <ScrollView>
-        <View style={{ paddingHorizontal: 20 }}>
-            <ListOptionSelected
-                  style={{ marginTop: 20 }}
-                  textLeft={t("type")}
-                  textRight={optionChoosed?.text}
-                  onPress={() => setModalVisible(true)}
+      <Text style={styles.title}>Recargas</Text>
+
+      <RectButton style={styles.nextButton} onPress={() => setModalVisible(true)}>
+        <Text style={styles.nextButtonText}>+ Recarga</Text>
+      </RectButton>
+
+      <FlatList
+        data={items}
+        renderItem={renderItem}
+        keyExtractor={(item: Item) => item.id.toString()}
+        ItemSeparatorComponent={renderSeparator}
+      />
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          //Alert.alert("Modal has been closed.");
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <ScrollView style={styles.container} contentContainerStyle={{ padding: 24 }}>
+              <Text style={styles.modalText}>Recarga</Text>
+
+              <SelectBox
+                label="Recarga"
+                options={products}
+                value={product}
+                onChange={(i: Item) => setProduct(i)}
+                hideInputFilter={false}
               />
-        </View>
-      </ScrollView>
 
-      <ActionSheetSelectOptionIcon
-                isVisible={modalVisible}
-                options={FTypes}
-                onChange={onChangeOption}
-                onSwipeComplete={() => setModalVisible(false)}
-            />
+              <Text style={styles.modalText}>Preço</Text>
+              <TextInput
+                style={styles.input}
+                value={price}
+                onChangeText={setPrice}
+              />
+              <Text style={styles.modalText}>Quantidade</Text>
+              <TextInput
+                style={styles.input}
+                value={quantity}
+                onChangeText={setQuantity}
+              />
+              <Text style={styles.modalText}>Total</Text>
+              <TextInput
+                style={styles.input}
+                value={amount}
+                onChangeText={setAmount}
+              />
+
+
+              <Pressable
+                style={[styles.nextButton, styles.buttonClose]}
+                onPress={() => setModalVisible(!modalVisible)}
+              >
+                <Text style={styles.textStyle}>Adicionar</Text>
+              </Pressable>
+
+              <Pressable
+                style={[styles.nextButton, styles.buttonClose]}
+                onPress={() => setModalVisible(!modalVisible)}
+              >
+                <Text style={styles.textStyle}>Cancelar</Text>
+              </Pressable>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       <RectButton style={styles.nextButton} onPress={handleCreateCustomer}>
         <Text style={styles.nextButtonText}>Gravar</Text>
       </RectButton>
-    </SafeAreaView>
+    </ScrollView>
   )
 }
 
@@ -192,5 +310,46 @@ const styles = StyleSheet.create({
     fontFamily: 'Nunito_800ExtraBold',
     fontSize: 16,
     color: '#FFF',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2
+  },
+  buttonOpen: {
+    backgroundColor: "#F194FF",
+  },
+  buttonClose: {
+    backgroundColor: "#2196F3",
+  },
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center"
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center"
   }
 })

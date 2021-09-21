@@ -1,8 +1,10 @@
 {
   "expo": {
-    "name": "Agnus-Sales",
-    "slug": "Agnus-Sales",
-    "version": "1.0.0",
+    "name": "Agnus_Sales",
+    "slug": "Agnus_Sales",
+    "privacy": "unlisted",
+    "sdkVersion": "42.0.0",
+    "version": "42.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
