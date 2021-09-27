@@ -12,7 +12,10 @@ import { Feather } from '@expo/vector-icons';
 import { RectButton } from 'react-native-gesture-handler';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import SelectBox, { Item } from 'react-native-multi-selectbox-typescript'
+import NumericInput from 'react-native-numeric-input'
+
 import { xorBy } from 'lodash'
+import * as numbers from '../../../functions/numbers'
 
 import api from '../../../services/api';
 
@@ -28,6 +31,7 @@ interface SalesPoint {
 interface Customer {
   id: number;
   name?: string;
+  customer?:string;
   vat?: string;
   cellphone1?: string;
   cellphone2?: string;
@@ -36,18 +40,26 @@ interface Customer {
   sales_point?: SalesPoint
 }
 
-interface Items {
-  id?: number;
-  code?: string;
+interface LineItem {
+  id: number;
   description?: string;
-  quantity?: number;
-  price?: number;
-  amount?: number;
+  quantity: number;
+  vat?:number;
+  discount?:number;
+  price: number;
+  amount: number;
+
+  barcode1?: string;
+  barcode2?: string;
+ 
+  product?: ProductItem;
 }
 
 interface ProductItem {
-  id: string | number;
-  item: string;
+  id: string;
+  code?:string;
+  name: string;
+  price: number;
 }
 
 export default function CustomerData() {
@@ -59,49 +71,83 @@ export default function CustomerData() {
 
   const [name, setName] = useState('');
 
-  const [nuit, setNuit] = useState('');
+  const [vat, setVat] = useState('');
 
-  const [money, setMoney] = useState(32000);
+  const [money, setMoney] = useState(0);
+
+  const [customer, setCustomer] = useState<Customer>();
 
   const [customerId, setCustomerId] = useState(0);
 
-  const [items, setItems] = useState<Items[]>([]);
+  const [lineItems, setLineItems] = useState<LineItem[]>([]);
+  
+  const [productList, setProductList] = useState<Item[]>([]);
+  const [product, setProduct] = useState<Item>();
 
   const [products, setProducts] = useState<ProductItem[]>([]);
+  
+  const [total, setTotal] = useState('');
+
   const params = route.params as InvoiceDetailsRouteParams;
 
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);  
 
-  const [product, setProduct] = useState();
-  const [price, setPrice] = useState('');
-  const [quantity, setQuantity] = useState('');
+  const [price, setPrice] = useState(0);
+  const [quantity, setQuantity] = useState(0);
   const [amount, setAmount] = useState('');
 
   useEffect(() => {
-    if (params.customerId) {
-      setCustomerId(params.customerId);
-    }
-  }, [params.customerId]);
 
-  useFocusEffect(() => {
+    api.get(`customers/${params.customerId}`).then(response => {
+
+      setCustomer(response.data);
+      setCustomerId(response.data.id);
+      setName(response.data.name || "");
+      setVat(response.data.vat || "");
+      
+    })
+
     api.get('products').then(response => {
-      const prod = response.data.map((p) => {
+      const prod = response.data
+
+      const prodList = prod?.map((p: any) => {
         return {
           id: p.id,
           item: p.name
         }
       })
+
+      setProductList(prodList) 
       setProducts(prod);
     });
-  })
+  }, [params.customerId]);
 
-  async function handleCreateCustomer() {
+  useEffect(() => {
+    let totalI = lineItems.reduce((acc, item: LineItem) => {
+      return acc + item.amount;
+    }, 0)
 
-    navigation.navigate('CustomerList');
-  }
+    setTotal( numbers.formatNumber(totalI));
+  }, [lineItems]);
 
-  const renderItem = ({ item }) => (
-    <Item id={item.id} title={item.description} />
+  useEffect(() => {
+    let totalP = price * quantity
+    setAmount(totalP.toString());
+  }, [price])
+
+  useEffect(() => {
+    let totalP = price * quantity
+    setAmount(totalP.toString());
+  }, [quantity])
+
+  const renderItem = ({item}) => (
+
+    <View style={styles.item}>
+          <Text>
+              {item.description} - preço: {item.price} - qnt: {item.quantity} - total: {numbers.formatNumber(item.amount) }
+          </Text>
+      </View>
+    // <Item id={item.id} title={item.description} />
   );
 
   const renderSeparator = () => {
@@ -116,13 +162,82 @@ export default function CustomerData() {
     );
   };
 
-  const Item = ({ id, title }) => (
-    <View style={styles.item}>
-      <Text style={styles.title}  >
-        {title}
-      </Text>
-    </View>
-  );
+  function handlerSelectProduct(item: Item) 
+  {
+    setProduct(item);
+    
+    let selProd = products.find(p => p.id == item.id.toString()) ;
+
+    if(!!selProd){
+      let amountP = price * quantity
+      setQuantity(1)
+      setPrice(selProd.price)
+      setAmount(numbers.formatNumber(amountP));
+    }    
+  }
+
+  async function handleSave() {
+
+    let totalI = lineItems.reduce((acc, item: LineItem) => {
+      return acc + item.amount;
+    }, 0)
+
+    let totalVat = lineItems.reduce((acc, item: LineItem) => {
+      return acc + (item.vat ||0);
+    }, 0)
+
+    let invoice:any = {
+      type: 'VD',
+      date: new Date(),
+      vat: totalVat,
+      total: totalI,
+      customer: customer,
+      items: lineItems?.map((line: LineItem) =>{
+        return{ 
+          description:line.description,
+          quantity:line.quantity,
+          price:line.price,
+          amount:line.amount,
+          discount:line.discount,
+          product: line.product?.id,          
+          vat:line.vat,          
+        }
+      }),
+    };
+
+    await api.post('invoices', invoice)
+      .catch( (err:any) => { console.debug(err) });
+
+    navigation.navigate('CustomerList');
+  }
+
+  async function handleAddItem() {
+
+    let selProduct = products.find(p => p.id == product?.id.toString()) ;
+
+    if (selProduct && price && quantity) {
+
+      const item:LineItem = {
+        id: 0,        
+        description: selProduct.name,
+        quantity,
+        price,
+        amount: price * quantity,
+        product: selProduct,
+      }
+
+      setLineItems([...lineItems, item]);
+
+      setProduct(undefined);
+      setPrice(0);
+      setQuantity(0);
+      setAmount('');
+
+      setModalVisible(!modalVisible);
+    }else{
+      alert('Preencha todos os campos')
+    }
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 24 }}>
@@ -139,75 +254,82 @@ export default function CustomerData() {
 
       <TextInput
         style={styles.input}
-        value={nuit}
-        onChangeText={setNuit}
+        value={vat}
+        onChangeText={setVat}
       />
       <Text style={styles.label}>Total</Text>
 
       <TextInput
-        style={styles.input}
-        value={nuit}
-        onChangeText={setNuit}
-      />
+          style={styles.input}
+          value={total}
+          editable={false}
+        />        
 
       <Text style={styles.title}>Recargas</Text>
 
       <RectButton style={styles.nextButton} onPress={() => setModalVisible(true)}>
         <Text style={styles.nextButtonText}>+ Recarga</Text>
       </RectButton>
-
-      <FlatList
-        data={items}
-        renderItem={renderItem}
-        keyExtractor={(item: Item) => item.id.toString()}
-        ItemSeparatorComponent={renderSeparator}
-      />
+      <View style={styles.container}>
+        <FlatList
+          data={lineItems}
+          renderItem={renderItem}
+          keyExtractor={(item: LineItem) => item.id.toString()}
+          ItemSeparatorComponent={renderSeparator}
+        />
+      </View>
 
       <Modal
         animationType="slide"
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => {
-          //Alert.alert("Modal has been closed.");
           setModalVisible(!modalVisible);
         }}
       >
-        <View style={styles.centeredView}>
+        <View style={styles.modal}>
           <View style={styles.modalView}>
             <ScrollView style={styles.container} contentContainerStyle={{ padding: 24 }}>
               <Text style={styles.modalText}>Recarga</Text>
 
               <SelectBox
                 label="Recarga"
-                options={products}
+                options={productList}
                 value={product}
-                onChange={(i: Item) => setProduct(i)}
+                onChange={(i: Item) => {
+                  handlerSelectProduct(i)                  
+                }}
                 hideInputFilter={false}
               />
 
               <Text style={styles.modalText}>Preço</Text>
-              <TextInput
-                style={styles.input}
+              <NumericInput
+                initValue={price}
                 value={price}
-                onChangeText={setPrice}
-              />
-              <Text style={styles.modalText}>Quantidade</Text>
-              <TextInput
-                style={styles.input}
-                value={quantity}
-                onChangeText={setQuantity}
-              />
-              <Text style={styles.modalText}>Total</Text>
-              <TextInput
-                style={styles.input}
-                value={amount}
-                onChangeText={setAmount}
-              />
+                onChange={value => setPrice(value)}
+                valueType='real'
+                rounded />
 
+              <Text style={styles.modalText}>Quantidade</Text>
+              <NumericInput
+                initValue={quantity}
+                value={quantity}
+                onChange={value => setQuantity(value)}
+                valueType='real'
+                rounded />
+
+
+              <Text style={styles.modalText}>Total</Text>
+              
+              <TextInput
+                  style={styles.input}
+                  value={amount}
+                  editable={false}
+                />   
 
               <Pressable
                 style={[styles.nextButton, styles.buttonClose]}
-                onPress={() => setModalVisible(!modalVisible)}
+                onPress={handleAddItem}
               >
                 <Text style={styles.textStyle}>Adicionar</Text>
               </Pressable>
@@ -223,7 +345,7 @@ export default function CustomerData() {
         </View>
       </Modal>
 
-      <RectButton style={styles.nextButton} onPress={handleCreateCustomer}>
+      <RectButton style={styles.nextButton} onPress={handleSave}>
         <Text style={styles.nextButtonText}>Gravar</Text>
       </RectButton>
     </ScrollView>
@@ -234,7 +356,14 @@ const styles = StyleSheet.create({
   container: {
     margin: 15
   },
-
+  modal: {
+    margin: 15
+  },
+  item: {
+    padding: 10,
+    fontSize: 18,
+    height: 44,
+  },
   title: {
     color: '#5c8599',
     fontSize: 24,
@@ -321,7 +450,7 @@ const styles = StyleSheet.create({
     margin: 20,
     backgroundColor: "white",
     borderRadius: 20,
-    padding: 35,
+    padding: 5,
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: {

@@ -50,8 +50,8 @@ export default function CustomerDetails() {
     Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${customer?.latitude},${customer?.longitude}`);
   }
 
-  function handlerNavigateToInvoice(customerId:number) {
-    navigation.navigate('CreateInvoice', { customerId });
+  function handlerNavigateToInvoice() {
+    navigation.navigate('CreateInvoice', { customerId:customer?.id });
   }
 
   return (

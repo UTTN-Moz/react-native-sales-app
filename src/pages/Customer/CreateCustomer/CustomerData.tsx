@@ -10,10 +10,6 @@ import { xorBy } from 'lodash'
 
 import api from '../../../services/api';
 
-YellowBox.ignoreWarnings([
-  'VirtualizedLists should never be nested', // TODO: Remove when fixed
-])
-
 interface CustomerDataRouteParams {
   position: {
     latitude: number,
