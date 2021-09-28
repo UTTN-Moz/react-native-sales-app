@@ -11,7 +11,10 @@ import CustomersMap from './pages/Customer/CustomersMap';
 import CustomerSelectMapPosition from './pages/Customer/CreateCustomer/SelectMapPosition';
 import CustomerDetails from './pages/Customer/CustomerDetails';
 import CustomerData from './pages/Customer/CreateCustomer/CustomerData';
+
 import CreateInvoice from './pages/Customer/Invoice/InvoiceData';
+
+import StatementList from './pages/Customer/Statement/StatementList';
 
 import Header from './components/Header';
 
@@ -62,6 +65,15 @@ export default function Routes() {
                     options={{
                         headerShown: true,
                         header: () => <Header title="Criação de Faturas" />
+                    }}
+                />
+
+                <Screen
+                    name="StatementList"
+                    component={StatementList}
+                    options={{
+                        headerShown: true,
+                        header: () => <Header title="Extrato" />
                     }}
                 />
             </Navigator>

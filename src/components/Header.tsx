@@ -13,7 +13,7 @@ export default function Header({ title, showCancel = true }: HeaderProps) {
     const navigation = useNavigation();
 
     function handleGoBackToAppHomepage() {
-        navigation.navigate('CustomersMap');
+        navigation.navigate('CustomersList');
     }
 
     return (

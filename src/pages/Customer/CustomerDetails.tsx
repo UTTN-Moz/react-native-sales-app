@@ -54,6 +54,11 @@ export default function CustomerDetails() {
     navigation.navigate('CreateInvoice', { customerId:customer?.id });
   }
 
+  function handlerNavigateToStatement() {
+    navigation.navigate('StatementList', { customerId:customer?.id });
+  }
+  
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.detailsContainer}>
@@ -98,12 +103,13 @@ export default function CustomerDetails() {
         <Text style={styles.description}>{customer.cellphone1}</Text>
         <Text style={styles.description}>{customer.cellphone2}</Text>
 
-        <RectButton style={styles.contactButton} onPress={() => { }}>
-          <FontAwesome name="whatsapp" size={24} color="#FFF" />
-          <Text style={styles.contactButtonText}>Entrar em contato</Text>
+        <RectButton style={styles.contactButton} onPress={handlerNavigateToStatement}>
+          <FontAwesome name="clipboard" size={24} color="#FFF" />
+          <Text style={styles.contactButtonText}>Extrato</Text>
         </RectButton>
 
         <RectButton style={styles.contactButton} onPress={handlerNavigateToInvoice}>
+        <FontAwesome name="money" size={24} color="#FFF" />
           <Text style={styles.contactButtonText}>Faturar</Text>
         </RectButton>
       </View>

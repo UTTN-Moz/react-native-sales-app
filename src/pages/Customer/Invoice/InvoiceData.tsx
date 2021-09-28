@@ -187,7 +187,7 @@ export default function CustomerData() {
     }, 0)
 
     let invoice:any = {
-      type: 'VD',
+      type: 'FA',
       date: new Date(),
       vat: totalVat,
       total: totalI,
@@ -205,10 +205,23 @@ export default function CustomerData() {
       }),
     };
 
-    await api.post('invoices', invoice)
-      .catch( (err:any) => { console.debug(err) });
+    await api.post('invoices', invoice).then(async (response) => {
+      invoice = response.data;  
+    })
 
-    navigation.navigate('CustomerList');
+    let statement:any = {
+      code: `${invoice.type}/${invoice.id}`,
+      amount:invoice.total,
+      date: new Date(),
+      customer: customer,
+      invoice:invoice,
+      type:'credit',
+      status:'pedding'
+    }
+
+    await api.post('statements', statement).then((response) => {
+      navigation.navigate('StatementList', { customerId:customer?.id });
+    })      
   }
 
   async function handleAddItem() {
